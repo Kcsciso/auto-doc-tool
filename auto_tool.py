@@ -127,7 +127,7 @@ def call_ai_macro(user_title, full_code, macro_vars):
     }}
     """
     try:
-        response = requests.post("http://localhost:11434/api/generate", json={"model": "qwen2.5:7b", "prompt": prompt, "format": "json", "stream": False})
+        response = requests.post("https://unfitted-area-evaporate.ngrok-free.dev/api/generate", json={"model": "qwen2.5:7b", "prompt": prompt, "format": "json", "stream": False})
         return json.loads(response.json().get("response", "{}"))
     except Exception as e:
         print(f"❌ 宏观大脑出错: {e}")
@@ -169,7 +169,7 @@ def call_ai_qa(user_title, log_text, qa_vars):
     }}
     """
     try:
-        response = requests.post("http://localhost:11434/api/generate", json={"model": "qwen2.5:7b", "prompt": prompt, "format": "json", "stream": False})
+        response = requests.post("https://unfitted-area-evaporate.ngrok-free.dev/api/generate", json={"model": "qwen2.5:7b", "prompt": prompt, "format": "json", "stream": False})
         return json.loads(response.json().get("response", "{}"))
     except Exception as e:
         print(f"❌ QA 智能体出错: {e}")
@@ -201,7 +201,7 @@ def call_ai_micro(var_name, code_snippet):
     只输出纯文本段落，严禁输出任何 JSON、Markdown 标记、标题等前缀废话！直接开始正文描述。
     """
     try:
-        response = requests.post("http://localhost:11434/api/generate", json={"model": "qwen2.5:7b", "prompt": prompt, "stream": False})
+        response = requests.post("https://unfitted-area-evaporate.ngrok-free.dev/api/generate", json={"model": "qwen2.5:7b", "prompt": prompt, "stream": False})
         return response.json().get("response", "").strip()
     except Exception as e:
         print(f"❌ 微观探针出错: {e}")
@@ -211,7 +211,8 @@ def call_ai_micro(var_name, code_snippet):
 # 4. 确定性主控引擎 (Schema-Driven Workflow)
 # ==========================================
 
-def build_report_router(py_file, img_file, log_file, output_path, user_title):
+# 1. 增加 template_file=None 参数
+def build_report_router(py_file, img_file, log_file, output_path, user_title, template_file=None):
     with open(py_file, 'r', encoding='utf-8') as f:
         full_code_text = f.read()
 
@@ -222,10 +223,19 @@ def build_report_router(py_file, img_file, log_file, output_path, user_title):
     else:
         print(f"⚠️ 未检测到真实日志文件 {log_file}，QA 智能体将降级为常规推演。")
 
-    template_type = "complex" if ("import " in full_code_text and len(full_code_text.split('\n')) > 100) else "simple"
-    template_path = f"template_{template_type}.docx"
-    print(f"🎯 路由判定：自动匹配【{template_type} 通用模板】")
+    # ----------------------------------------
+    # 2. 修改这里的模板路由逻辑
+    # ----------------------------------------
+    if template_file and os.path.exists(template_file):
+        template_path = template_file
+        print(f"🎯 路由判定：使用用户上传的【自定义模板】 -> {template_path}")
+    else:
+        # 如果用户没传模板，降级为原有的自动匹配逻辑
+        template_type = "complex" if ("import " in full_code_text and len(full_code_text.split('\n')) > 100) else "simple"
+        template_path = f"template_{template_type}.docx"
+        print(f"🎯 路由判定：未检测到自定义模板，自动匹配【{template_type} 通用模板】")
 
+    # 核心：动态提取用户模板中的变量，原代码不需要任何改动！
     template_vars = get_template_vars(template_path)
     code_blocks = extract_code_with_ast(py_file) if template_type == "complex" else {"code_main": full_code_text}
 
