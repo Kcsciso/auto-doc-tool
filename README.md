@@ -1,4 +1,3 @@
-
 # 🤖 Auto-Doc-Tool Agent V4.0
 > **基于三脑协同矩阵 (Macro/Micro/QA) 的通用实验报告智能体自动化生成系统**
 
@@ -45,17 +44,79 @@ Auto-Doc-Tool 是一个零人工干预的智能文档生成引擎。只需上传
 
 ---
 
-## 🚀 本地开发与运行
+## 🚀 部署与分发指南 (C/S 架构)
 
-1. 克隆本项目到本地。
-2. 确保系统已安装 Python 3.8+ 及依赖：
+本项目采用**算力端分离**的设计理念。Linux 容器作为“云端大脑”提供大模型算力，Windows 客户端作为“UI 躯壳”提供开箱即用的前端交互。
+
+### 第一阶段：配置云端算力节点 (Linux/Server)
+在服务器端配置 Ollama 并通过 Ngrok 暴露固定公网 API。
+
+1. **允许外部访问并后台运行 Ollama**：
    ```bash
-   pip install gradio docxtpl python-docx requests
+   export OLLAMA_HOST=0.0.0.0
+   nohup ollama serve > ollama.log 2>&1 &
 
 ```
 
-3. 确保云端或本地已配置好 Ollama API（默认请求地址为 ngrok 穿透的云端节点）。
-4. 启动 Web 服务：
+2. **配置 Ngrok 固定域名 (永不掉线)**：
+* 前往 [Ngrok Dashboard](https://dashboard.ngrok.com/) 免费申领一个固定静态域名（Static Domain），例如 `your-domain.ngrok-free.app`。
+* 在服务器后台静默打洞：
+
+
+```bash
+nohup ngrok http --domain=your-domain.ngrok-free.app 11434 --log=stdout > ngrok.log 2>&1 &
+
+```
+
+
+3. **更新项目代码**：
+将 `auto_tool.py` 中所有的 `requests.post` 地址替换为你的固定域名接口：
+`https://your-domain.ngrok-free.app/api/generate`
+
+### 第二阶段：客户端打包与自动化分发 (Windows EXE)
+
+项目内置了 GitHub Actions 流水线，无需本地配置复杂的打包环境，代码推送即自动生成 Windows 可执行程序。
+
+1. **强制添加核心模板资产** (绕过 `.gitignore`)：
+```bash
+git add -f template_complex.docx
+git add -f template_simple.docx
+
+```
+
+
+2. **触发云端打包**：
+```bash
+git add .
+git commit -m "chore: update api domain and trigger build"
+git push origin main
+
+```
+
+
+3. **获取免安装版客户端**：
+* 访问本仓库的 **Actions** 页面。
+* 等待 `Build Windows EXE` 任务完成（绿灯 ✅）。
+* 在任务详情页底部的 **Artifacts** 区域，下载 `Auto-Doc-Tool-Windows-Release.zip`。
+* 用户解压后双击 `Auto-Doc-Tool.exe`，即可弹出美化后的 Web UI 并连接云端算力，实现“零配置、秒出报告”。
+
+
+
+---
+
+## 💻 开发者本地调试
+
+如果你只需要在本地开发和调试：
+
+1. 克隆本项目到本地。
+2. 安装依赖：
+```bash
+pip install gradio docxtpl python-docx requests pyinstaller
+
+```
+
+
+3. 确保本地 Ollama 正在运行，并启动 Web 调试服务：
 ```bash
 python web_ui.py
 
