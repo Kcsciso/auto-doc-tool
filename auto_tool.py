@@ -5,10 +5,10 @@ import requests
 import re
 from docxtpl import DocxTemplate, InlineImage
 from docx.shared import Mm
-
-# ==========================================
-# 1. 通用工具函数模块
-# ==========================================
+from docx.shared import Pt, RGBColor, Inches
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 
 def get_template_vars(template_path):
     doc = DocxTemplate(template_path)
