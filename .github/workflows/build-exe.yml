@@ -1,0 +1,39 @@
+name: Build Windows EXE
+
+# 触发条件：当你推送到 main 分支，或者在网页端手动点击运行 时触发
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    # 强制指定使用最新的 Windows 服务器进行打包
+    runs-on: windows-latest
+
+    steps:
+      - name: 📥 拉取最新代码
+        uses: actions/checkout@v4
+
+      - name: 🐍 配置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # 使用稳定的 3.10 版本
+
+      - name: 📦 安装核心依赖与打包工具
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller gradio docxtpl python-docx requests
+
+      - name: 🔨 运行 PyInstaller 终极打包命令
+        run: |
+          pyinstaller --name "Auto-Doc-Tool" --add-data "template_complex.docx;." --add-data "template_simple.docx;." --hidden-import gradio web_ui.py
+
+      - name: 📤 上传打包好的 EXE 文件夹 (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Auto-Doc-Tool-Windows-Release
+          path: dist/Auto-Doc-Tool/
+          retention-days: 7 # 生成的压缩包在 GitHub 上保留 7 天
