@@ -2,24 +2,34 @@ import gradio as gr
 import os
 import shutil
 from auto_tool import build_report_router
+import gradio as gr
+import os
+import shutil
+from auto_tool import build_report_router
 
 # 1. 在参数列表中新增 template_file
 def generate_doc(title, code_file, img_file, log_file, template_file):
     """
-    网页端处理函数：交给 Agent 自动路由分发
+    网页端处理函数：交给 Agent 自动路由分发 (已升级为 yield 持续生成模式)
     """
     if code_file is None:
-        return None, "❌ 请上传 Python 源代码文件！"
+        # 【修改点 1】：把 return 改成 yield，并加上 return 退出函数
+        yield None, "❌ 请上传 Python 源代码文件！"
+        return
+    
+    # 【修改点 2】：在正式开始漫长的 Agent 推演前，先推送一条状态给前端，稳住连接
+    yield None, "⏳ Agent 特工已唤醒，正在全速阅读源码并撰写报告，请耐心等待（约 1-5 分钟）..."
     
     output_filename = f"{title}_智能实验报告.docx"
     output_path = os.path.join(os.getcwd(), output_filename)
     
-    # 1. 修复图片提取：如果不传，给个空字符串，避免读取本地测试残留
+    # 修复图片提取[cite: 1]
     img_path = img_file if isinstance(img_file, str) else (img_file.name if img_file else "")
     
-    # 2. 修复日志提取：如果不传，也给空字符串，彻底阻断历史默认日志的干扰
+    # 修复日志提取[cite: 1]
     log_path = log_file if isinstance(log_file, str) else (log_file.name if log_file else "")
-    # 3. 新增：安全提取用户上传的模板路径
+    
+    # 安全提取用户上传的模板路径[cite: 1]
     template_path = template_file if isinstance(template_file, str) else (template_file.name if template_file else None)
     
     try:
@@ -27,17 +37,14 @@ def generate_doc(title, code_file, img_file, log_file, template_file):
         temp_code_path = "experiment.py"
         shutil.copy(code_path, temp_code_path)
         
-        # 3. 新增：将 template_path 传给后端路由
+        # 将 template_path 传给后端路由[cite: 1]
         build_report_router(temp_code_path, img_path, log_path, output_path, title, template_path)
         
-        return output_path, "✅ 智能体报告生成成功！已根据您的配置完成深度解析。"
+        # 【修改点 3】：完成任务后，yield 最终的文件路径和成功信息
+        yield output_path, "✅ 智能体报告生成成功！已根据您的配置完成深度解析。"
     except Exception as e:
-        return None, f"❌ 生成失败，错误信息：{str(e)}"
-
-import gradio as gr
-import os
-import shutil
-from auto_tool import build_report_router
+        # 【修改点 4】：如果发生报错，也是 yield 报错信息
+        yield None, f"❌ 生成失败，错误信息：{str(e)}"
 
 # ==========================================
 # 搭建 Agent V4.0 现代化网页界面 (宽屏优化版)
