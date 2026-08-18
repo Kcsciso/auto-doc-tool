@@ -3238,3 +3238,255 @@ time=2026-08-17T17:16:21.628+08:00 level=WARN source=ggml.go:152 msg="key not fo
 [GIN] 2026/08/17 - 17:16:31 | 200 |  9.788284601s |       127.0.0.1 | POST     "/api/generate"
 time=2026-08-17T17:16:31.429+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
 [GIN] 2026/08/17 - 17:16:39 | 200 |  8.416895708s |       127.0.0.1 | POST     "/api/generate"
+time=2026-08-18T09:16:28.825+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+time=2026-08-18T09:16:29.479+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+time=2026-08-18T09:16:29.491+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+time=2026-08-18T09:16:29.492+08:00 level=WARN source=ggml.go:152 msg="key not found" key=qwen2.vision.block_count default=0
+time=2026-08-18T09:16:29.492+08:00 level=WARN source=ggml.go:152 msg="key not found" key=qwen2.attention.key_length default=128
+time=2026-08-18T09:16:29.492+08:00 level=WARN source=ggml.go:152 msg="key not found" key=qwen2.attention.value_length default=128
+time=2026-08-18T09:16:29.492+08:00 level=INFO source=sched.go:754 msg="new model will fit in available VRAM in single GPU, loading" model=/home/kasm-user/.ollama/models/blobs/sha256-2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730 gpu=GPU-2756647b-c568-efcd-c2ca-379409824691 parallel=2 available=25714753536 required="5.6 GiB"
+time=2026-08-18T09:16:30.110+08:00 level=INFO source=server.go:106 msg="system memory" total="503.5 GiB" free="150.1 GiB" free_swap="0 B"
+time=2026-08-18T09:16:30.111+08:00 level=WARN source=ggml.go:152 msg="key not found" key=qwen2.vision.block_count default=0
+time=2026-08-18T09:16:30.111+08:00 level=WARN source=ggml.go:152 msg="key not found" key=qwen2.attention.key_length default=128
+time=2026-08-18T09:16:30.111+08:00 level=WARN source=ggml.go:152 msg="key not found" key=qwen2.attention.value_length default=128
+time=2026-08-18T09:16:30.111+08:00 level=INFO source=server.go:139 msg=offload library=cuda layers.requested=-1 layers.model=29 layers.offload=29 layers.split="" memory.available="[23.9 GiB]" memory.gpu_overhead="0 B" memory.required.full="5.6 GiB" memory.required.partial="5.6 GiB" memory.required.kv="448.0 MiB" memory.required.allocations="[5.6 GiB]" memory.weights.total="4.1 GiB" memory.weights.repeating="3.7 GiB" memory.weights.nonrepeating="426.4 MiB" memory.graph.full="478.0 MiB" memory.graph.partial="730.4 MiB"
+llama_model_loader: loaded meta data with 34 key-value pairs and 339 tensors from /home/kasm-user/.ollama/models/blobs/sha256-2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730 (version GGUF V3 (latest))
+llama_model_loader: Dumping metadata keys/values. Note: KV overrides do not apply in this output.
+llama_model_loader: - kv   0:                       general.architecture str              = qwen2
+llama_model_loader: - kv   1:                               general.type str              = model
+llama_model_loader: - kv   2:                               general.name str              = Qwen2.5 7B Instruct
+llama_model_loader: - kv   3:                           general.finetune str              = Instruct
+llama_model_loader: - kv   4:                           general.basename str              = Qwen2.5
+llama_model_loader: - kv   5:                         general.size_label str              = 7B
+llama_model_loader: - kv   6:                            general.license str              = apache-2.0
+llama_model_loader: - kv   7:                       general.license.link str              = https://huggingface.co/Qwen/Qwen2.5-7...
+llama_model_loader: - kv   8:                   general.base_model.count u32              = 1
+llama_model_loader: - kv   9:                  general.base_model.0.name str              = Qwen2.5 7B
+llama_model_loader: - kv  10:          general.base_model.0.organization str              = Qwen
+llama_model_loader: - kv  11:              general.base_model.0.repo_url str              = https://huggingface.co/Qwen/Qwen2.5-7B
+llama_model_loader: - kv  12:                               general.tags arr[str,2]       = ["chat", "text-generation"]
+llama_model_loader: - kv  13:                          general.languages arr[str,1]       = ["en"]
+llama_model_loader: - kv  14:                          qwen2.block_count u32              = 28
+llama_model_loader: - kv  15:                       qwen2.context_length u32              = 32768
+llama_model_loader: - kv  16:                     qwen2.embedding_length u32              = 3584
+llama_model_loader: - kv  17:                  qwen2.feed_forward_length u32              = 18944
+llama_model_loader: - kv  18:                 qwen2.attention.head_count u32              = 28
+llama_model_loader: - kv  19:              qwen2.attention.head_count_kv u32              = 4
+llama_model_loader: - kv  20:                       qwen2.rope.freq_base f32              = 1000000.000000
+llama_model_loader: - kv  21:     qwen2.attention.layer_norm_rms_epsilon f32              = 0.000001
+llama_model_loader: - kv  22:                          general.file_type u32              = 15
+llama_model_loader: - kv  23:                       tokenizer.ggml.model str              = gpt2
+llama_model_loader: - kv  24:                         tokenizer.ggml.pre str              = qwen2
+llama_model_loader: - kv  25:                      tokenizer.ggml.tokens arr[str,152064]  = ["!", "\"", "#", "$", "%", "&", "'", ...
+llama_model_loader: - kv  26:                  tokenizer.ggml.token_type arr[i32,152064]  = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+llama_model_loader: - kv  27:                      tokenizer.ggml.merges arr[str,151387]  = ["Ġ Ġ", "ĠĠ ĠĠ", "i n", "Ġ t",...
+llama_model_loader: - kv  28:                tokenizer.ggml.eos_token_id u32              = 151645
+llama_model_loader: - kv  29:            tokenizer.ggml.padding_token_id u32              = 151643
+llama_model_loader: - kv  30:                tokenizer.ggml.bos_token_id u32              = 151643
+llama_model_loader: - kv  31:               tokenizer.ggml.add_bos_token bool             = false
+llama_model_loader: - kv  32:                    tokenizer.chat_template str              = {%- if tools %}\n    {{- '<|im_start|>...
+llama_model_loader: - kv  33:               general.quantization_version u32              = 2
+llama_model_loader: - type  f32:  141 tensors
+llama_model_loader: - type q4_K:  169 tensors
+llama_model_loader: - type q6_K:   29 tensors
+print_info: file format = GGUF V3 (latest)
+print_info: file type   = Q4_K - Medium
+print_info: file size   = 4.36 GiB (4.91 BPW) 
+load: special tokens cache size = 22
+load: token to piece cache size = 0.9310 MB
+print_info: arch             = qwen2
+print_info: vocab_only       = 1
+print_info: model type       = ?B
+print_info: model params     = 7.62 B
+print_info: general.name     = Qwen2.5 7B Instruct
+print_info: vocab type       = BPE
+print_info: n_vocab          = 152064
+print_info: n_merges         = 151387
+print_info: BOS token        = 151643 '<|endoftext|>'
+print_info: EOS token        = 151645 '<|im_end|>'
+print_info: EOT token        = 151645 '<|im_end|>'
+print_info: PAD token        = 151643 '<|endoftext|>'
+print_info: LF token         = 198 'Ċ'
+print_info: FIM PRE token    = 151659 '<|fim_prefix|>'
+print_info: FIM SUF token    = 151661 '<|fim_suffix|>'
+print_info: FIM MID token    = 151660 '<|fim_middle|>'
+print_info: FIM PAD token    = 151662 '<|fim_pad|>'
+print_info: FIM REP token    = 151663 '<|repo_name|>'
+print_info: FIM SEP token    = 151664 '<|file_sep|>'
+print_info: EOG token        = 151643 '<|endoftext|>'
+print_info: EOG token        = 151645 '<|im_end|>'
+print_info: EOG token        = 151662 '<|fim_pad|>'
+print_info: EOG token        = 151663 '<|repo_name|>'
+print_info: EOG token        = 151664 '<|file_sep|>'
+print_info: max token length = 256
+llama_model_load: vocab only - skipping tensors
+time=2026-08-18T09:16:30.303+08:00 level=INFO source=server.go:410 msg="starting llama server" cmd="/usr/local/bin/ollama runner --model /home/kasm-user/.ollama/models/blobs/sha256-2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730 --ctx-size 8192 --batch-size 512 --n-gpu-layers 29 --threads 96 --parallel 2 --port 43367"
+time=2026-08-18T09:16:30.303+08:00 level=INFO source=sched.go:452 msg="loaded runners" count=1
+time=2026-08-18T09:16:30.303+08:00 level=INFO source=server.go:589 msg="waiting for llama runner to start responding"
+time=2026-08-18T09:16:30.304+08:00 level=INFO source=server.go:623 msg="waiting for server to become available" status="llm server not responding"
+time=2026-08-18T09:16:30.322+08:00 level=INFO source=runner.go:853 msg="starting go runner"
+load_backend: loaded CPU backend from /usr/local/lib/ollama/libggml-cpu-icelake.so
+ggml_cuda_init: GGML_CUDA_FORCE_MMQ:    no
+ggml_cuda_init: GGML_CUDA_FORCE_CUBLAS: no
+ggml_cuda_init: found 1 CUDA devices:
+  Device 0: NVIDIA A100-PCIE-40GB, compute capability 8.0, VMM: yes
+load_backend: loaded CUDA backend from /usr/local/lib/ollama/cuda_v12/libggml-cuda.so
+time=2026-08-18T09:16:30.415+08:00 level=INFO source=ggml.go:103 msg=system CPU.0.SSE3=1 CPU.0.SSSE3=1 CPU.0.AVX=1 CPU.0.AVX2=1 CPU.0.F16C=1 CPU.0.FMA=1 CPU.0.BMI2=1 CPU.0.AVX512=1 CPU.0.AVX512_VBMI=1 CPU.0.AVX512_VNNI=1 CPU.0.LLAMAFILE=1 CPU.1.LLAMAFILE=1 CUDA.0.ARCHS=500,600,610,700,750,800,860,870,890,900,1200 CUDA.0.USE_GRAPHS=1 CUDA.0.PEER_MAX_BATCH_SIZE=128 compiler=cgo(gcc)
+time=2026-08-18T09:16:30.415+08:00 level=INFO source=runner.go:913 msg="Server listening on 127.0.0.1:43367"
+time=2026-08-18T09:16:30.558+08:00 level=INFO source=server.go:623 msg="waiting for server to become available" status="llm server loading model"
+llama_model_load_from_file_impl: using device CUDA0 (NVIDIA A100-PCIE-40GB) - 24523 MiB free
+llama_model_loader: loaded meta data with 34 key-value pairs and 339 tensors from /home/kasm-user/.ollama/models/blobs/sha256-2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730 (version GGUF V3 (latest))
+llama_model_loader: Dumping metadata keys/values. Note: KV overrides do not apply in this output.
+llama_model_loader: - kv   0:                       general.architecture str              = qwen2
+llama_model_loader: - kv   1:                               general.type str              = model
+llama_model_loader: - kv   2:                               general.name str              = Qwen2.5 7B Instruct
+llama_model_loader: - kv   3:                           general.finetune str              = Instruct
+llama_model_loader: - kv   4:                           general.basename str              = Qwen2.5
+llama_model_loader: - kv   5:                         general.size_label str              = 7B
+llama_model_loader: - kv   6:                            general.license str              = apache-2.0
+llama_model_loader: - kv   7:                       general.license.link str              = https://huggingface.co/Qwen/Qwen2.5-7...
+llama_model_loader: - kv   8:                   general.base_model.count u32              = 1
+llama_model_loader: - kv   9:                  general.base_model.0.name str              = Qwen2.5 7B
+llama_model_loader: - kv  10:          general.base_model.0.organization str              = Qwen
+llama_model_loader: - kv  11:              general.base_model.0.repo_url str              = https://huggingface.co/Qwen/Qwen2.5-7B
+llama_model_loader: - kv  12:                               general.tags arr[str,2]       = ["chat", "text-generation"]
+llama_model_loader: - kv  13:                          general.languages arr[str,1]       = ["en"]
+llama_model_loader: - kv  14:                          qwen2.block_count u32              = 28
+llama_model_loader: - kv  15:                       qwen2.context_length u32              = 32768
+llama_model_loader: - kv  16:                     qwen2.embedding_length u32              = 3584
+llama_model_loader: - kv  17:                  qwen2.feed_forward_length u32              = 18944
+llama_model_loader: - kv  18:                 qwen2.attention.head_count u32              = 28
+llama_model_loader: - kv  19:              qwen2.attention.head_count_kv u32              = 4
+llama_model_loader: - kv  20:                       qwen2.rope.freq_base f32              = 1000000.000000
+llama_model_loader: - kv  21:     qwen2.attention.layer_norm_rms_epsilon f32              = 0.000001
+llama_model_loader: - kv  22:                          general.file_type u32              = 15
+llama_model_loader: - kv  23:                       tokenizer.ggml.model str              = gpt2
+llama_model_loader: - kv  24:                         tokenizer.ggml.pre str              = qwen2
+llama_model_loader: - kv  25:                      tokenizer.ggml.tokens arr[str,152064]  = ["!", "\"", "#", "$", "%", "&", "'", ...
+llama_model_loader: - kv  26:                  tokenizer.ggml.token_type arr[i32,152064]  = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+llama_model_loader: - kv  27:                      tokenizer.ggml.merges arr[str,151387]  = ["Ġ Ġ", "ĠĠ ĠĠ", "i n", "Ġ t",...
+llama_model_loader: - kv  28:                tokenizer.ggml.eos_token_id u32              = 151645
+llama_model_loader: - kv  29:            tokenizer.ggml.padding_token_id u32              = 151643
+llama_model_loader: - kv  30:                tokenizer.ggml.bos_token_id u32              = 151643
+llama_model_loader: - kv  31:               tokenizer.ggml.add_bos_token bool             = false
+llama_model_loader: - kv  32:                    tokenizer.chat_template str              = {%- if tools %}\n    {{- '<|im_start|>...
+llama_model_loader: - kv  33:               general.quantization_version u32              = 2
+llama_model_loader: - type  f32:  141 tensors
+llama_model_loader: - type q4_K:  169 tensors
+llama_model_loader: - type q6_K:   29 tensors
+print_info: file format = GGUF V3 (latest)
+print_info: file type   = Q4_K - Medium
+print_info: file size   = 4.36 GiB (4.91 BPW) 
+load: special tokens cache size = 22
+load: token to piece cache size = 0.9310 MB
+print_info: arch             = qwen2
+print_info: vocab_only       = 0
+print_info: n_ctx_train      = 32768
+print_info: n_embd           = 3584
+print_info: n_layer          = 28
+print_info: n_head           = 28
+print_info: n_head_kv        = 4
+print_info: n_rot            = 128
+print_info: n_swa            = 0
+print_info: n_swa_pattern    = 1
+print_info: n_embd_head_k    = 128
+print_info: n_embd_head_v    = 128
+print_info: n_gqa            = 7
+print_info: n_embd_k_gqa     = 512
+print_info: n_embd_v_gqa     = 512
+print_info: f_norm_eps       = 0.0e+00
+print_info: f_norm_rms_eps   = 1.0e-06
+print_info: f_clamp_kqv      = 0.0e+00
+print_info: f_max_alibi_bias = 0.0e+00
+print_info: f_logit_scale    = 0.0e+00
+print_info: f_attn_scale     = 0.0e+00
+print_info: n_ff             = 18944
+print_info: n_expert         = 0
+print_info: n_expert_used    = 0
+print_info: causal attn      = 1
+print_info: pooling type     = 0
+print_info: rope type        = 2
+print_info: rope scaling     = linear
+print_info: freq_base_train  = 1000000.0
+print_info: freq_scale_train = 1
+print_info: n_ctx_orig_yarn  = 32768
+print_info: rope_finetuned   = unknown
+print_info: ssm_d_conv       = 0
+print_info: ssm_d_inner      = 0
+print_info: ssm_d_state      = 0
+print_info: ssm_dt_rank      = 0
+print_info: ssm_dt_b_c_rms   = 0
+print_info: model type       = 7B
+print_info: model params     = 7.62 B
+print_info: general.name     = Qwen2.5 7B Instruct
+print_info: vocab type       = BPE
+print_info: n_vocab          = 152064
+print_info: n_merges         = 151387
+print_info: BOS token        = 151643 '<|endoftext|>'
+print_info: EOS token        = 151645 '<|im_end|>'
+print_info: EOT token        = 151645 '<|im_end|>'
+print_info: PAD token        = 151643 '<|endoftext|>'
+print_info: LF token         = 198 'Ċ'
+print_info: FIM PRE token    = 151659 '<|fim_prefix|>'
+print_info: FIM SUF token    = 151661 '<|fim_suffix|>'
+print_info: FIM MID token    = 151660 '<|fim_middle|>'
+print_info: FIM PAD token    = 151662 '<|fim_pad|>'
+print_info: FIM REP token    = 151663 '<|repo_name|>'
+print_info: FIM SEP token    = 151664 '<|file_sep|>'
+print_info: EOG token        = 151643 '<|endoftext|>'
+print_info: EOG token        = 151645 '<|im_end|>'
+print_info: EOG token        = 151662 '<|fim_pad|>'
+print_info: EOG token        = 151663 '<|repo_name|>'
+print_info: EOG token        = 151664 '<|file_sep|>'
+print_info: max token length = 256
+load_tensors: loading model tensors, this can take a while... (mmap = true)
+load_tensors: offloading 28 repeating layers to GPU
+load_tensors: offloading output layer to GPU
+load_tensors: offloaded 29/29 layers to GPU
+load_tensors:        CUDA0 model buffer size =  4168.09 MiB
+load_tensors:   CPU_Mapped model buffer size =   292.36 MiB
+llama_context: constructing llama_context
+llama_context: n_seq_max     = 2
+llama_context: n_ctx         = 8192
+llama_context: n_ctx_per_seq = 4096
+llama_context: n_batch       = 1024
+llama_context: n_ubatch      = 512
+llama_context: causal_attn   = 1
+llama_context: flash_attn    = 0
+llama_context: freq_base     = 1000000.0
+llama_context: freq_scale    = 1
+llama_context: n_ctx_per_seq (4096) < n_ctx_train (32768) -- the full capacity of the model will not be utilized
+llama_context:  CUDA_Host  output buffer size =     1.19 MiB
+init: kv_size = 8192, offload = 1, type_k = 'f16', type_v = 'f16', n_layer = 28, can_shift = 1
+init:      CUDA0 KV buffer size =   448.00 MiB
+llama_context: KV self size  =  448.00 MiB, K (f16):  224.00 MiB, V (f16):  224.00 MiB
+llama_context:      CUDA0 compute buffer size =   492.00 MiB
+llama_context:  CUDA_Host compute buffer size =    23.01 MiB
+llama_context: graph nodes  = 1042
+llama_context: graph splits = 2
+time=2026-08-18T09:16:32.316+08:00 level=INFO source=server.go:628 msg="llama runner started in 2.01 seconds"
+[GIN] 2026/08/18 - 09:16:38 | 200 | 10.098717077s |       127.0.0.1 | POST     "/v1/chat/completions"
+time=2026-08-18T09:16:38.951+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:16:42 | 200 |  3.428546211s |       127.0.0.1 | POST     "/v1/chat/completions"
+time=2026-08-18T09:16:42.488+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:16:45 | 200 |  3.395877751s |       127.0.0.1 | POST     "/v1/chat/completions"
+time=2026-08-18T09:16:45.932+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:16:49 | 200 |  3.204544327s |       127.0.0.1 | POST     "/v1/chat/completions"
+time=2026-08-18T09:16:49.111+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:16:51 | 200 |  2.894999608s |       127.0.0.1 | POST     "/v1/chat/completions"
+time=2026-08-18T09:16:52.119+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:16:56 | 200 |  4.315638585s |       127.0.0.1 | POST     "/v1/chat/completions"
+time=2026-08-18T09:16:56.480+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:17:01 | 200 |  5.243794284s |       127.0.0.1 | POST     "/v1/chat/completions"
+time=2026-08-18T09:17:01.832+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:17:04 | 200 |  2.550962509s |       127.0.0.1 | POST     "/v1/chat/completions"
+time=2026-08-18T09:17:04.374+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:17:06 | 200 |  2.059307007s |       127.0.0.1 | POST     "/v1/chat/completions"
+time=2026-08-18T09:17:06.437+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:17:11 | 200 |  4.776936065s |       127.0.0.1 | POST     "/api/generate"
+time=2026-08-18T09:17:11.217+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:17:18 | 200 |  7.278419698s |       127.0.0.1 | POST     "/api/generate"
+time=2026-08-18T09:17:18.502+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:17:25 | 200 |  6.910641451s |       127.0.0.1 | POST     "/api/generate"
+time=2026-08-18T09:17:25.512+08:00 level=WARN source=ggml.go:152 msg="key not found" key=general.alignment default=32
+[GIN] 2026/08/18 - 09:17:26 | 200 |  783.461366ms |       127.0.0.1 | POST     "/api/generate"

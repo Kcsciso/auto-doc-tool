@@ -14,6 +14,8 @@ from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+from tree_sitter import Language, Parser
+import tree_sitter_python as tspython
 
 # 让 CrewAI 连接你的本地大模型 (换成你实际的 ngrok 链接或 localhost)
 os.environ["OPENAI_API_BASE"] = "http://localhost:11434/v1" 
@@ -21,7 +23,7 @@ os.environ["OPENAI_API_KEY"] = "ollama" # 必填，但随便填什么都行
 
 class AgentMemoryManager:
     """
-    Agentic V5.5: 自反思长期记忆中枢 (Long-term Episodic Memory)
+    Agentic V6.0: 具备语义路由与检索能力的长期记忆中枢 (Semantic Memory Routing)
     """
     def __init__(self, memory_file="agent_memory.json"):
         self.memory_file = memory_file
@@ -31,52 +33,80 @@ class AgentMemoryManager:
         if os.path.exists(self.memory_file):
             try:
                 with open(self.memory_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    # 兼容老版本的纯列表格式，自动平滑升级为结构化存储
+                    if isinstance(data, list):
+                        return [{"rule": r, "tags": "general"} for r in data]
+                    return data
             except Exception:
                 return []
         return []
 
     def save_memory(self):
-        # 为了防止记忆库无限膨胀导致幻觉，只保留最新、最核心的 5 条元法则
+        # 2026 演进：不再粗暴截断，允许记忆库沉淀高质量元法则（最多保留 30 条核心经验）
         with open(self.memory_file, 'w', encoding='utf-8') as f:
-            json.dump(self.rules[-5:], f, ensure_ascii=False, indent=2)
+            json.dump(self.rules[-30:], f, ensure_ascii=False, indent=2)
 
     def add_rule(self, rule):
         clean_rule = rule.strip()
-        if clean_rule and clean_rule not in self.rules and "未能提取" not in clean_rule:
-            self.rules.append(clean_rule)
-            self.save_memory()
-            print(f"💡 [记忆中枢] 顿悟并保存了一条新法则: {clean_rule[:30]}...")
+        if not clean_rule or "未能提取" in clean_rule:
+            return
+            
+        # 自动为新法则打上语义标签 (Tags)
+        tags = []
+        if any(k in clean_rule.lower() for k in ["视觉", "ui", "图像", "cv2", "渲染"]):
+            tags.append("vision")
+        if any(k in clean_rule.lower() for k in ["硬件", "串口", "机械臂", "映射", "驱动"]):
+            tags.append("hardware")
+        if not tags:
+            tags.append("general")
 
-    def get_memory_context(self):
+        # 检查是否重复
+        existing_rules = [item["rule"] for item in self.rules]
+        if clean_rule not in existing_rules:
+            self.rules.append({"rule": clean_rule, "tags": ",".join(tags)})
+            self.save_memory()
+            print(f"💡 [记忆中枢] 顿悟并结构化存储了新法则 (标签: {tags}): {clean_rule[:30]}...")
+
+    def get_memory_context(self, current_code_snippet=""):
+        """
+        🌟 2026 核心创新：根据当前代码的内容，动态语义路由相关的历史法则，拒绝一锅端
+        """
         if not self.rules:
             return ""
-        rules_text = "\n".join([f"- {r}" for r in self.rules[-5:]])
-        return f"\n【长期记忆库：历史复盘总结的学术元法则】\n请务必吸收以下经验进行写作：\n{rules_text}\n"
+            
+        # 如果没有提供代码片段，默认返回最近的 3 条
+        if not current_code_snippet:
+            recent = self.rules[-3:]
+            rules_text = "\n".join([f"- {item['rule']}" for item in recent])
+            return f"\n【长期记忆库：历史精选元法则】\n{rules_text}\n"
+
+        # 语义匹配打分
+        scored_rules = []
+        code_lower = current_code_snippet.lower()
+        
+        for item in self.rules:
+            score = 1  # 基础分
+            tags = item["tags"].split(",")
+            # 如果法则的标签在当前代码中命中文本，大幅加权
+            if "vision" in tags and any(k in code_lower for k in ["cv2", "image", "plt", "show", "camera"]):
+                score += 5
+            if "hardware" in tags and any(k in code_lower for k in ["port", "arm", "robot", "serial", "control"]):
+                score += 5
+            scored_rules.append((score, item["rule"]))
+
+        # 按匹配得分排序，取最相关的顶部 4 条法则
+        scored_rules.sort(key=lambda x: x[0], reverse=True)
+        top_rules = [r[1] for r in scored_rules[:4]]
+        
+        rules_text = "\n".join([f"- {r}" for r in top_rules])
+        return f"\n【长期记忆库：基于当前工程语义智能路由的学术元法则】\n请务必吸收以下高相关经验进行写作：\n{rules_text}\n"
 
 # 实例化一个全局记忆中枢
 memory_bank = AgentMemoryManager()
 
-def get_template_vars(template_path):
-    doc = DocxTemplate(template_path)
-    variables = doc.get_undeclared_template_variables()
-    return [v for v in variables if not v.startswith(('code_', 'result_image', 'hw_env', 'sw_env'))]
-
-def clean_list_text(raw_data, allow_bullet=False):
-    if isinstance(raw_data, list):
-        valid_items = [str(item).strip() for item in raw_data if str(item).strip()]
-        if allow_bullet:
-            return "\n".join([f"{i+1}. {item}" for i, item in enumerate(valid_items)])
-        else:
-            return " ".join(valid_items)
-            
-    text = str(raw_data).strip()
-    if not allow_bullet:
-        text = re.sub(r'^\d+\.\s*', '', text, flags=re.MULTILINE)
-    return text
-
 # ==========================================
-# 2. 核心：通用代码抽象提取器 (AST)
+# 2. 核心：通用代码抽象提取器 (Tree-sitter 装甲版)
 # ==========================================
 
 def extract_code_with_ast(py_file_path):
@@ -86,85 +116,96 @@ def extract_code_with_ast(py_file_path):
     with open(py_file_path, 'r', encoding='utf-8') as f:
         source_code = f.read()
 
-    try:
-        tree = ast.parse(source_code)
-    except SyntaxError as e:
-        print(f"⚠️ AST 解析失败: {e}")
-        return {"code_import": "", "code_load_model": "", "code_robot": "", "code_main": "语法错误无法提取"}
+    # 🌟 2026 前沿黑科技：启动 Tree-sitter 极限容错解析
+    PY_LANGUAGE = Language(tspython.language(), "python")
+    parser = Parser()
+    parser.set_language(PY_LANGUAGE)
+    
+    # 哪怕代码写得稀烂（少括号、缩进错），它也绝对不会抛出 SyntaxError，只会强行解析！
+    tree = parser.parse(bytes(source_code, "utf8"))
+    root_node = tree.root_node
 
     blocks = {"code_import": [], "code_load_model": [], "code_robot": [], "code_main": []}
 
-    # 🌟 优化点三：新增核心骨架提取器 (AST Node Manipulator)
-    def build_skeleton(node):
-        new_node = copy.deepcopy(node) # 深拷贝，防止污染原语法树
-        
-        # 如果是函数定义
-        if isinstance(new_node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            docstring = ast.get_docstring(new_node)
-            new_body = []
-            if docstring:
-                new_body.append(new_node.body[0]) # 保留函数的注释说明
-            # 掏空具体逻辑，用折叠占位符替代
-            new_body.append(ast.Expr(value=ast.Constant(value="... [具体代码逻辑已折叠] ...")))
-            new_node.body = new_body
-            
-        # 如果是类定义
-        elif isinstance(new_node, ast.ClassDef):
-            docstring = ast.get_docstring(new_node)
-            new_body = []
-            if docstring:
-                new_body.append(new_node.body[0])
-            for child in new_node.body:
-                # 递归保留类里面的所有子函数/子类的签名
-                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                    new_body.append(build_skeleton(child))
-            if not new_body or (len(new_body) == 1 and docstring):
-                new_body.append(ast.Expr(value=ast.Constant(value="... [类属性与方法已折叠] ...")))
-            new_node.body = new_body
-            
-        return new_node
+    # 辅助函数：提取节点名称
+    def get_node_name(node):
+        for child in node.children:
+            if child.type == 'identifier':
+                return child.text.decode('utf8')
+        return "unknown"
 
-    for node in tree.body:
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            source = ast.get_source_segment(source_code, node)
-            if source: blocks["code_import"].append(source)
-        elif isinstance(node, ast.Assign):
-            source = ast.get_source_segment(source_code, node)
-            if source: blocks["code_load_model"].append(source)
+    # 辅助函数：提取函数/类的注释 (Docstring)
+    def get_docstring(node):
+        for child in node.children:
+            if child.type == 'block':
+                if len(child.children) > 0 and child.children[0].type == 'expression_statement':
+                    string_node = child.children[0].children[0]
+                    if string_node.type == 'string':
+                        return string_node.text.decode('utf8').strip('\'" \n')
+        return ""
+
+    # 🌟 核心：Tree-sitter 节点转 XML 序列化拓扑
+    def build_xml_skeleton_ts(node, depth=0):
+        indent = "  " * depth
+        
+        # 1. 遇到类定义，生成 <Class> 标签
+        if node.type == 'class_definition':
+            name = get_node_name(node)
+            xml_str = f"{indent}<Class name=\"{name}\">\n"
+            doc = get_docstring(node)
+            if doc:
+                clean_doc = doc.split('\n')[0].replace('"', "'")
+                xml_str += f"{indent}  <Docstring>{clean_doc}</Docstring>\n"
             
-        elif isinstance(node, (ast.ClassDef, ast.FunctionDef)):
-            # 🌟 接入骨架提取逻辑
-            skeleton_node = build_skeleton(node)
-            try:
-                # 使用 Python 3.9+ 的 ast.unparse 将树还原为优雅的代码字符串
-                source = ast.unparse(skeleton_node)
-            except AttributeError:
-                # 如果用户的 Python 版本低于 3.9，降级回旧版的简单行数截断
-                source = ast.get_source_segment(source_code, node)
-                lines = source.split('\n')
-                if len(lines) > 35:
-                    source = "\n".join(lines[:35]) + "\n    # ... [为保持报告精简，此处省略后续长代码逻辑] ..."
-            if source:
-                blocks["code_robot"].append(source)
+            # 递归挖掘类里面的函数 (Tree-sitter 中，内容通常包裹在 block 节点里)
+            for child in node.children:
+                if child.type == 'block':
+                    for subchild in child.children:
+                        if subchild.type in ['function_definition', 'class_definition']:
+                            xml_str += build_xml_skeleton_ts(subchild, depth + 1)
+            xml_str += f"{indent}</Class>\n"
+            return xml_str
+            
+        # 2. 遇到函数定义，瞬间抽空内部逻辑，只保留纯骨架属性
+        elif node.type == 'function_definition':
+            name = get_node_name(node)
+            doc = get_docstring(node)
+            doc_attr = f' doc="{doc.split(chr(10))[0].replace(chr(34), chr(39))}"' if doc else ""
+            return f"{indent}<Function name=\"{name}\"{doc_attr} status=\"logic_folded\" />\n"
+        
+        return ""
+
+    # 遍历根节点下的所有顶层代码块
+    for node in root_node.children:
+        # 如果解析引擎遇到了乱码或语法错误，它会标记为 ERROR，但程序继续运行！
+        if node.type == 'ERROR':
+            print("⚠️ [Tree-sitter 探针] 发现代码局部语法损坏，已强行跳过损坏片段！")
+            continue
+            
+        if node.type in ['import_statement', 'import_from_statement']:
+            blocks["code_import"].append(node.text.decode('utf8'))
+            
+        elif node.type == 'assignment' or (node.type == 'expression_statement' and node.children[0].type == 'assignment'):
+            blocks["code_load_model"].append(node.text.decode('utf8'))
+            
+        elif node.type in ['class_definition', 'function_definition']:
+            xml_source = build_xml_skeleton_ts(node)
+            if xml_source:
+                blocks["code_robot"].append(xml_source.strip())
                 
-        elif isinstance(node, ast.If):
-            try:
-                if isinstance(node.test, ast.Compare) and \
-                   isinstance(node.test.left, ast.Name) and node.test.left.id == '__name__':
-                    source = ast.get_source_segment(source_code, node)
-                    if source:
-                        lines = source.split('\n')
-                        if len(lines) > 20: # 主程序稍微放宽至 20 行
-                            source = "\n".join(lines[:20]) + "\n    # ... [主循环调用逻辑已折叠] ..."
-                        blocks["code_main"].append(source)
-            except AttributeError:
-                pass
+        elif node.type == 'if_statement':
+            text = node.text.decode('utf8')
+            if "__name__" in text and "__main__" in text:
+                lines = text.split('\n')
+                if len(lines) > 20: 
+                    text = "\n".join(lines[:20]) + "\n    # ... [主循环调用逻辑已折叠] ..."
+                blocks["code_main"].append(text)
 
     return {
         "code_import": "\n".join(blocks["code_import"])[:600] + ("\n# ...[省略后续库导入]..." if len(blocks["code_import"]) > 10 else ""),
         "code_load_model": "\n".join(blocks["code_load_model"])[:800],
-        # 放宽骨架的字符限制，因为浓缩的都是精华
-        "code_robot": "\n\n".join(blocks["code_robot"])[:3000] if blocks["code_robot"] else "# 未检测到核心类或函数定义", 
+        # 🌟 组装终极拓扑 XML
+        "code_robot": "<ProjectTopology>\n" + "\n\n".join(blocks["code_robot"]) + "\n</ProjectTopology>" if blocks["code_robot"] else "<ProjectTopology><Empty/></ProjectTopology>", 
         "code_main": "\n".join(blocks["code_main"]) if blocks["code_main"] else "# 未检测到标准主程序入口"
     }
 
@@ -191,27 +232,38 @@ import json
 def call_ai_macro(user_title, full_code, macro_vars, blackboard=None):
     if not macro_vars: return {}
     blackboard = blackboard or {}
-    print(f"🧠 [宏观大脑] 正在分析系统架构与全局逻辑 (启动双重审查机制)...")
+    print(f"🧠 [宏观大脑] 正在分析系统拓扑架构 (启动图谱级双重审查)...")
     
+    # 提取前 150 行作为基础参照
     short_code = "\n".join(full_code.split('\n')[:150])
     json_requirements = []
     for var in macro_vars:
         if "purpose" in var or "process" in var:
             json_requirements.append(f'        "{var}": ["核心要点1", "核心要点2", "核心要点3"]')
         else:
-            json_requirements.append(f'        "{var}": "结合代码内容，撰写一段约150字的系统架构分析。"')
+            json_requirements.append(f'        "{var}": "结合全局拓扑，撰写一段约150字的系统架构分析。"')
             
     json_keys_str = ",\n".join(json_requirements)
 
-    blackboard_context = ""
+    # 🌟 2026 创新点：将扁平黑板升维成 GraphRAG 语义拓扑协议
+    graph_context = ""
     if blackboard:
-        blackboard_context = "【微观探针与QA提取的局部关键事实】\n请务必深度融合以下事实撰写总结：\n"
+        graph_context = "【系统实体关系图谱 (Entity-Relationship Graph)】\n"
+        graph_context += "以下是底层探针提取的组件级运行事实，请你务必建立它们之间的逻辑调用链条：\n"
+        
+        # 将无序字典转化为带层级依赖的伪图谱文本
+        component_id = 1
         for key, value in blackboard.items():
             if value and not str(value).startswith(("未找到", "提示：", "#")):
-                blackboard_context += f"- {key}: {value}\n"
+                # 动态分配组件层级，引导模型建立上下游关系
+                layer = "上层逻辑" if "main" in key else "底层依赖" if "import" in key else "核心中台"
+                graph_context += f"  ├── [节点 {component_id} | {layer}] <{key}>\n"
+                graph_context += f"  │    └── 核心事实: {value}\n"
+                component_id += 1
+        graph_context += "  └── 🎯 你的任务：将上述离散节点串联为一套完整的系统架构闭环。\n"
 
     # ==========================================
-    # Pass 1: 生成初稿
+    # Pass 1: 生成初稿 (基于图谱上下文)
     # ==========================================
     prompt_draft = f"""
     当前工程项目：“{user_title}”
@@ -219,7 +271,7 @@ def call_ai_macro(user_title, full_code, macro_vars, blackboard=None):
     ```python
     {short_code}
     ```
-    {blackboard_context}
+    {graph_context}
     
     输出包含以下键的JSON，填入对应分析：
     {{
@@ -233,7 +285,7 @@ def call_ai_macro(user_title, full_code, macro_vars, blackboard=None):
         # ==========================================
         # Pass 2: Critic 学术重写
         # ==========================================
-        print(f"🧐 [学术审查特工] 正在对宏观大脑的输出进行学术级去水与润色...")
+        print(f"🧐 [学术审查特工] 正在对宏观大脑的输出进行学术级去水与图谱润色...")
         critic_prompt = f"""
         你是一位苛刻的顶级工程论文审稿人。请严格审查并重写以下 JSON 草稿中的各个字段值。
         
@@ -243,10 +295,11 @@ def call_ai_macro(user_title, full_code, macro_vars, blackboard=None):
         {memory_bank.get_memory_context()}
 
         【整容手术要求】:
-        1. 封杀一切营销词汇和废话（如：“该系统完美实现了”、“不仅...还...”、“极大地提高了”、“体现了智能化”等）。
+        1. 封杀一切营销词汇和废话（如：“该系统完美实现了”、“不仅...还...”、“极大地提高了”等）。
         2. 剔除所有 AI 八股文味，强制替换为第三人称客观陈述。
-        3. 必须保持原始的 JSON 结构和键名（Key）完全不变，只重写对应的值（Value）。
-        4. 严禁任何前言后语，直接输出合法的 JSON 数据。
+        3. 描述必须体现组件之间的“控制流”或“数据流”关系（例如：A模块将数据透传至B模块，最终驱动C组件）。
+        4. 必须保持原始的 JSON 结构和键名（Key）完全不变，只重写对应的值（Value）。
+        5. 严禁任何前言后语，直接输出合法的 JSON 数据。
         """
         response_critic = requests.post("http://127.0.0.1:11434/api/generate", json={"model": "qwen2.5:7b", "prompt": critic_prompt, "format": "json", "stream": False})
         return json.loads(response_critic.json().get("response", "{}"))
@@ -455,42 +508,51 @@ def build_report_router(py_file, img_file, log_file, output_path, user_title, te
     deterministic_hw_env = "搭载 GPU 的高性能计算平台" if any(k in import_text for k in ["yolov5", "cv2", "torch"]) else "通用计算机环境"
 
     # ----------------------------------------
-    # 智能体任务分发层 (基于全局黑板的 Actor 流水线)
+    # 智能体任务分发层 (基于图谱语义黑板的 Actor 流水线)
     # ----------------------------------------
     
-    # 🌟 1. 初始化全局黑板
+    # 🌟 1. 初始化全局图谱黑板 (Graph Context)
     global_blackboard = {}
 
-    # 🌟 2. 微观探针 (Micro) 率先出动，提炼底层逻辑并写在黑板上
+    # 🌟 2. 微观探针 (Micro) 率先出动，提炼底层逻辑
     micro_data = {}
+    
+    # 【2026 演进】：引入拓扑层级标签 (Topology Tags)
     API_CONTRACT = {
-        "code_import": "step_import_desc",
-        "code_load_model": "step_load_desc",
-        "code_robot": "step_orchestration_desc",
-        "code_main": "step_main_desc"
+        "code_import": ("step_import_desc", "基础依赖与环境层 (Base Environment)"),
+        "code_load_model": ("step_load_desc", "静态资源与模型层 (Static Resources)"),
+        "code_robot": ("step_orchestration_desc", "核心业务与逻辑控制层 (Core Logic)"),
+        "code_main": ("step_main_desc", "系统顶层调度层 (System Entry)")
     }
     
-    for ast_key, expected_var in API_CONTRACT.items():
+    for ast_key, (expected_var, layer_tag) in API_CONTRACT.items():
         if expected_var in template_vars:
             target_code_snippet = code_blocks.get(ast_key, "")
-            # Micro 提取结论
+            # Micro 提取干瘪的底层事实
             result_text = call_ai_micro(expected_var, target_code_snippet)
+            
+            # 记录到微观数据池 (保持原汁原味，用于 Word 原样渲染)
             micro_data[expected_var] = result_text
-            # 写入黑板
-            global_blackboard[expected_var] = result_text 
+            
+            # 🌟 核心：往黑板写入数据时，强行注入图谱层级标签！(给宏观大脑提供导航)
+            global_blackboard[expected_var] = f"【属于 {layer_tag}】: {result_text}" 
         else:
             print(f"⚠️ 契约缺失：模板中未找到标准变量 {{{{{expected_var}}}}}，跳过生成。")
 
-    # 🌟 3. QA 智能体出动，提炼现场日志并写在黑板上
+    # 🌟 3. QA 智能体出动，提炼现场日志
     qa_vars = [v for v in template_vars if "process" in v or "result" in v or "test" in v]
     raw_qa_data = call_ai_qa(user_title, log_text, qa_vars)
-    global_blackboard.update(raw_qa_data) # 将 QA 结论合并进黑板
+    
+    # 将 QA 结论进行时态图谱化后，合并进黑板
+    for q_key, q_val in raw_qa_data.items():
+        q_text = clean_list_text(q_val, allow_bullet=True)
+        # 为 QA 数据打上动态执行状态标签
+        global_blackboard[q_key] = f"【系统黑盒运行期的真实表现 (Dynamic Execution State)】: {q_text}"
 
-    # 🌟 4. 宏观大脑 (Macro) 最后压轴出场！携带全局黑板进行高维总结
+    # 🌟 4. 宏观大脑 (Macro) 压轴出场！读取结构化图谱进行架构推演
     macro_vars = [v for v in template_vars if not v.startswith("step_") and v not in qa_vars]
-    # 把 global_blackboard 传给 Macro
     raw_macro_data = call_ai_macro(user_title, full_code_text, macro_vars, global_blackboard)
-
+    
     # ----------------------------------------
     # 最终文档渲染层 (Render)
     # ----------------------------------------
